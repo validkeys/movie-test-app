@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=development ./node_modules/babel-cli/bin/babel-node.js ./src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "NODE_ENV=test nodemon --config ./nodemon.json --watch src --watch tests ./node_modules/lab/bin/lab ./tests"
   },
   "author": "Kyle Davis (https://twitter.com/validkeys)",
   "license": "MIT",
@@ -41,5 +41,11 @@
       ]
     ],
     "env": {}
+  },
+  "devDependencies": {
+    "code": "^5.2.4",
+    "lab": "^18.0.2",
+    "lab-babel": "^1.1.1",
+    "sinon": "^7.3.2"
   }
 }

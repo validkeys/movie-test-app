@@ -2,12 +2,28 @@ import prompts from "prompts";
 import { init as setupDatabase, sequelize as db } from "./db"; // renamed init to make code easier to understand
 // ^ importing "named exports" from db.js
 
-const internals = {
+const internals = {}
 
-	
-}
+export const handlers = {
 
-const handlers = {
+  _sample: async function(movieName) {
+    if (!movieName) {
+      throw new Error("name is required")
+    }
+    return `${movieName} Movie`
+  },
+
+  _sample2: async function() {
+    const movieName = await prompts({
+      type: "text",
+      name: "value",
+      message: "What's the name of the movie?"
+    });
+
+    const { value } = movieName;
+    return value.value
+  },
+
   add: async function() {
     const movieName = await prompts({
       type: "text",
@@ -156,13 +172,3 @@ start(); // start is linked with async and await
   // chaining promises 
 
 // callback --> synchronous --> end up with a bunch of nested callbacks --> have to wait until result is returned
-
-
-
-
-
-
-
-
-
-
