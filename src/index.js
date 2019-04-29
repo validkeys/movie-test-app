@@ -2,59 +2,24 @@ import prompts from "prompts";
 import { init as setupDatabase, sequelize as db } from "./db"; // renamed init to make code easier to understand
 // ^ importing "named exports" from db.js
 
+const Internals = {
+  fetchAllMovies: async function() {
+    var movies = db.models.movie.findAll({ 
+        attributes: ['id', 'title'],
+        where: {},
+        raw: true
+      });
 
-// Internals will be an object with a bunch of methods for utility functions
-
-/*
-const Internals = {}
-
-Internals.printMovies = function({ db }) {
-  const movies = db.movies.findAll({where:{}})
-  console.log(movies)
-}
-
-*/
-
-const handlers = {
-  add: async function() {
-    const movieName = await prompts({
-      type: "text",
-      name: "value",
-      message: "What's the name of the movie?"
-    });
-
-    const { value } = movieName;
-
-    let newMovie = await db.models.movie.create({
-      title: value
-    });
-
-    console.log(`Movie Created: id#${newMovie.id}`);
-
-    // call start again to keep the good times rolling
-    return start();
+    return movies;
   },
-
-  list: async function() {
-    const movies = await db.models.movie.findAll({
-      where: {},
-      raw: true
-    });
-
-    console.log(`you have ${movies.length} movies in the database`);
+  printAllMovies: async function() {
+    var movies = await Internals.fetchAllMovies()
+    console.log(`You have ${movies.length} movies in the database:`);
     console.log(JSON.stringify(movies, null, 2));
-    return start();
   },
+  moviesMenu: async function() {
 
-  update: async function() {
-      
-    var movies = await db.models.movie.findAll({    // why can't I nest this within the function below?
-      attributes: ['id', 'title'],
-      where: {},
-      raw: true
-    });
-
-    function menuChoices() {
+      var movies = await Internals.fetchAllMovies();
 
       var menuChoices = [];
       var i = 0;
@@ -67,16 +32,43 @@ const handlers = {
       };
 
       return menuChoices;
-    };
+  }
+};
+
+const handlers = {
+  add: async function() {
+    const movieTitle = await prompts({
+      type: "text",
+      name: "movieTitle",
+      message: "What's the name of the movie?"
+    });
+
+    await db.models.movie.create({
+      title: movieTitle.movieTitle
+    });
+
+    Internals.printAllMovies()
+
+    return start();
+  },
+
+  list: async function() {
+
+    Internals.printAllMovies();
+
+    return start();
+  },
+
+  update: async function() {
+
+    var movies = await Internals.fetchAllMovies()
 
     const movieToUpdate = await prompts({
       type: "select",
       name: "movieId",
       message: "What movie would you like to update?",
-      choices: await menuChoices()
+      choices: await Internals.moviesMenu()
     });
-
-    console.log(movieToUpdate);
 
     const updatedMovie = await prompts({
       type: "text",
@@ -91,55 +83,48 @@ const handlers = {
           id: movieToUpdate.movieId
         }
     });
-
-    const updatedMovies = await db.models.movie.findAll({
-      where: {},
-      raw: true
-    });
-
-    console.log(`here is your updated list: `);
-    console.log(JSON.stringify(updatedMovies, null, 2));
+    
+    Internals.printAllMovies();
+    
     return start();
   },
   
   delete: async function() {
+    
+    var movies = await Internals.fetchAllMovies()
+
     const movieToDelete = await prompts({
-      type: "text",
-      name: "value",
-      message: "What movie would you like to delete?"
+      type: "select",
+      name: "movieId",
+      message: "What movie would you like to delete?",
+      choices: await Internals.moviesMenu()
     });
 
-    const { value } = movieToDelete;
-
-    let deleteMovie = await db.models.movie.destroy({
+    await db.models.movie.destroy({
       where: { 
-        title: value 
+        id: movieToDelete.movieId 
       }
     });
 
-    const movies = await db.models.movie.findAll({
-      where: {},
-      raw: true
-    });
+    Internals.printAllMovies();
 
-    console.log(`here is your updated list: `);
-    console.log(JSON.stringify(movies, null, 2));
     return start();
   }, 
 
-  // need to complete
   view: async function() {
-    const movieToView = await prompts({
-      type: "text",
-      name: "value",
-      message: "What movie would you like to view?"
-    });
 
-    const { value } = movieToView;
+    var movies = await Internals.fetchAllMovies()
+
+    const movieToView = await prompts({
+      type: "select",
+      name: "movieId",
+      message: "What movie would you like to view?",
+      choices: await Internals.moviesMenu()
+    });
 
     const movieView = await db.models.movie.findAll({
       where: { 
-        title: value 
+        id: movieToView.movieId 
       },
       raw: true
     });
@@ -153,7 +138,6 @@ const start = async function() {
   try {
     await setupDatabase();
 
-    // https://www.npmjs.com/package/prompts#-types
     const response = await prompts({
       type: "select",
       name: "value",
