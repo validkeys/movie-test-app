@@ -1,5 +1,19 @@
 import prompts from "prompts";
-import { init as setupDatabase, sequelize as db } from "./db";
+import { init as setupDatabase, sequelize as db } from "./db"; // renamed init to make code easier to understand
+// ^ importing "named exports" from db.js
+
+
+// Internals will be an object with a bunch of methods for utility functions
+
+/*
+const Internals = {}
+
+Internals.printMovies = function({ db }) {
+  const movies = db.movies.findAll({where:{}})
+  console.log(movies)
+}
+
+*/
 
 const handlers = {
   add: async function() {
@@ -29,6 +43,108 @@ const handlers = {
 
     console.log(`you have ${movies.length} movies in the database`);
     console.log(JSON.stringify(movies, null, 2));
+    return start();
+  },
+
+  update: async function() {
+      
+    var movies = await db.models.movie.findAll({    // why can't I nest this within the function below?
+      attributes: ['id', 'title'],
+      where: {},
+      raw: true
+    });
+
+    function menuChoices() {
+
+      var menuChoices = [];
+      var i = 0;
+
+      for (i in movies) {
+        
+        var newMenuChoice = {title: movies[i].title, value: movies[i].id}
+        
+        menuChoices.push(newMenuChoice)
+      };
+
+      return menuChoices;
+    };
+
+    const movieToUpdate = await prompts({
+      type: "select",
+      name: "movieId",
+      message: "What movie would you like to update?",
+      choices: await menuChoices()
+    });
+
+    console.log(movieToUpdate);
+
+    const updatedMovie = await prompts({
+      type: "text",
+      name: "movieTitle",
+      message: "What would you like to update it to?"
+    });
+
+    await db.models.movie.update({
+      title: updatedMovie.movieTitle
+      }, {
+        where: {
+          id: movieToUpdate.movieId
+        }
+    });
+
+    const updatedMovies = await db.models.movie.findAll({
+      where: {},
+      raw: true
+    });
+
+    console.log(`here is your updated list: `);
+    console.log(JSON.stringify(updatedMovies, null, 2));
+    return start();
+  },
+  
+  delete: async function() {
+    const movieToDelete = await prompts({
+      type: "text",
+      name: "value",
+      message: "What movie would you like to delete?"
+    });
+
+    const { value } = movieToDelete;
+
+    let deleteMovie = await db.models.movie.destroy({
+      where: { 
+        title: value 
+      }
+    });
+
+    const movies = await db.models.movie.findAll({
+      where: {},
+      raw: true
+    });
+
+    console.log(`here is your updated list: `);
+    console.log(JSON.stringify(movies, null, 2));
+    return start();
+  }, 
+
+  // need to complete
+  view: async function() {
+    const movieToView = await prompts({
+      type: "text",
+      name: "value",
+      message: "What movie would you like to view?"
+    });
+
+    const { value } = movieToView;
+
+    const movieView = await db.models.movie.findAll({
+      where: { 
+        title: value 
+      },
+      raw: true
+    });
+
+    console.log(JSON.stringify(movieView, null, 2));
     return start();
   }
 };
@@ -64,4 +180,19 @@ const start = async function() {
   }
 };
 
-start();
+start(); // start is linked with async and await 
+
+// promises --> asynchronous --> makes the request , continues doing other things , returns results once complete
+  // chaining promises 
+
+// callback --> synchronous --> end up with a bunch of nested callbacks --> have to wait until result is returned
+
+
+
+
+
+
+
+
+
+

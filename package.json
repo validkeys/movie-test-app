@@ -12,11 +12,11 @@
   "dependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "6.26.3",
-    "babel-eslint": "10.0.1",
     "babel-plugin-source-map-support": "^2.0.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.7.0",
+    "braces": "^3.0.1",
     "prompts": "^2.0.4",
     "sequelize": "^5.2.15",
     "sqlite3": "^4.0.6"
@@ -41,5 +41,9 @@
       ]
     ],
     "env": {}
+  },
+  "devDependencies": {
+    "babel-eslint": "^8.2.6",
+    "eslint": "^4.19.1"
   }
 }
