@@ -1,16 +1,13 @@
 import prompts from "prompts";
-import { init as setupDatabase, sequelize as db } from "./db"; // renamed init to make code easier to understand
-// ^ importing "named exports" from db.js
+import { init as setupDatabase, sequelize as db } from "./db";
 
 const Internals = {
-  fetchAllMovies: async function() {
-    var movies = db.models.movie.findAll({ 
+  fetchAllMovies: function() {
+    return db.models.movie.findAll({ 
         attributes: ['id', 'title'],
         where: {},
         raw: true
       });
-
-    return movies;
   },
   printAllMovies: async function() {
     var movies = await Internals.fetchAllMovies()
@@ -18,20 +15,10 @@ const Internals = {
     console.log(JSON.stringify(movies, null, 2));
   },
   moviesMenu: async function() {
-
-      var movies = await Internals.fetchAllMovies();
-
-      var menuChoices = [];
-      var i = 0;
-
-      for (i in movies) {
-        
-        var newMenuChoice = {title: movies[i].title, value: movies[i].id}
-        
-        menuChoices.push(newMenuChoice)
-      };
-
-      return menuChoices;
+    var movies = await Internals.fetchAllMovies();
+    return movies.map(m => {
+      return { title: m.title, value: m.id }
+    })
   }
 };
 
@@ -47,14 +34,14 @@ const handlers = {
       title: movieTitle.movieTitle
     });
 
-    Internals.printAllMovies()
+    await Internals.printAllMovies()
 
     return start();
   },
 
   list: async function() {
 
-    Internals.printAllMovies();
+    await Internals.printAllMovies();
 
     return start();
   },
@@ -84,7 +71,7 @@ const handlers = {
         }
     });
     
-    Internals.printAllMovies();
+    await Internals.printAllMovies();
     
     return start();
   },
@@ -106,7 +93,7 @@ const handlers = {
       }
     });
 
-    Internals.printAllMovies();
+    await Internals.printAllMovies();
 
     return start();
   }, 
@@ -164,12 +151,7 @@ const start = async function() {
   }
 };
 
-start(); // start is linked with async and await 
-
-// promises --> asynchronous --> makes the request , continues doing other things , returns results once complete
-  // chaining promises 
-
-// callback --> synchronous --> end up with a bunch of nested callbacks --> have to wait until result is returned
+start(); 
 
 
 
